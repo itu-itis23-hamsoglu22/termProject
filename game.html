@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Game Page</title>
+    <link rel="stylesheet" href="game.css">
+    
+</head>
+<body>
+    <header>
+		<a href="index.html">About Me</a>
+        <h1>Memory Game</h1>
+    </header>
+
+    <section id="memory-game">
+        <h2>Memory Game</h2>
+        <p>Score: <span id="score">0</span></p>
+        <div class="memory-game" id="memoryGame"></div>
+        <button onclick="startGame()">Start Game</button>
+        <button onclick="restartGame()">Restart</button>
+    </section>
+
+    <script src="game.js"></script>
+    <script>
+		window.onload=renderCards();
+	</script>
+</body>
+</html>

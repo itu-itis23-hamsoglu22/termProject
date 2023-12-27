@@ -1,0 +1,39 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #1ad2bc;
+    color: white;
+    text-align: center;
+    padding: 1em;
+}
+
+nav a {
+    color: white;
+    margin: 0 10px;
+    text-decoration: none;
+}
+
+#about-me {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 2em;
+}
+
+#personal-intro,
+#academic-interests {
+    width: 45%;
+}
+#personal-intro img,
+#memory-game dynamic-image {
+    max-width: 35%;
+    max-height: 35%;
+    width: auto;
+    height: auto;
+}
+
+
