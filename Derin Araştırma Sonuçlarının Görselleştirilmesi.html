@@ -1,0 +1,1075 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mineral Karşılaştırma Raporu</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .tabs {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .tab:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid var(--secondary-color);
+            color: var(--secondary-color);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 30px 0;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        h1, h2, h3 {
+            color: var(--primary-color);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+        }
+        
+        h2 {
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8rem;
+        }
+        
+        h3 {
+            margin-top: 25px;
+            font-size: 1.4rem;
+            color: var(--accent-color);
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .mineral-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .mineral-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .mineral-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .mineral-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .mineral-body {
+            padding: 15px;
+        }
+        
+        .property {
+            margin-bottom: 10px;
+        }
+        
+        .property-name {
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 30px 0;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+        
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .comparison-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .comparison-table tr:hover {
+            background-color: #e9e9e9;
+        }
+        
+        .expandable {
+            margin: 20px 0;
+        }
+        
+        .expandable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: var(--light-color);
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .expandable-header:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .expandable-content {
+            padding: 15px;
+            background-color: white;
+            border-radius: 0 0 5px 5px;
+            box-shadow: var(--shadow);
+            display: block;
+        }
+        
+        .arrow {
+            transition: transform 0.3s ease;
+        }
+        
+        .arrow.rotated {
+            transform: rotate(180deg);
+        }
+        
+        @media (max-width: 768px) {
+            .mineral-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mineral Karşılaştırma Raporu</h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="giris">Giriş</div>
+            <div class="tab" data-tab="kristal">Kristal Sistemleri</div>
+            <div class="tab" data-tab="fiziksel">Fiziksel Özellikler</div>
+            <div class="tab" data-tab="olusum">Oluşum Koşulları</div>
+            <div class="tab" data-tab="kullanim">Kullanım Alanları</div>
+            <div class="tab" data-tab="karsilastirma">Karşılaştırma</div>
+            <div class="tab" data-tab="sonuc">Sonuç</div>
+        </div>
+        
+        <div id="giris" class="tab-content active">
+            <div class="card">
+                <h2>Giriş</h2>
+                <p>Bu rapor, jeolojik olarak önemli beş mineral olan Orpiment, Sülfür, Stilbite, Barit ve Siderit'in sistematik özelliklerini, kristal yapılarını, fiziksel ve kimyasal özelliklerini, oluşum koşullarını, kullanım alanlarını ve isim kökenlerini detaylı biçimde incelemektedir.</p>
+                
+                <div class="expandable">
+                    <div class="expandable-header">
+                        <span>Detaylı Bilgi</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="expandable-content">
+                        <p>Mineralogik sınıflandırma ve karşılaştırma çalışmaları, hem akademik araştırmalarda hem de endüstriyel uygulamalarda büyük önem taşımaktadır. Bu çalışma, görsel öğeler, tablolar ve diagramlar eşliğinde minerallerin benzerliklerini ve farklılıklarını sistematik olarak ortaya koymayı hedeflemektedir.</p>
+                        <p>Minerallerin doğru tanımlanması, arazi çalışmaları, laboratuvar testleri ve çapraz referans kullanılarak yapılır. Mineral özelliklerine ilişkin bilgiler; parlaklık, sertlik, çizgi rengi, kırılma şekli, özgül ağırlık gibi parametrelerin detaylı gözlemlenmesiyle elde edilir.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mineral-grid">
+                <div class="mineral-card">
+                    <div class="mineral-header" style="background-color: #e67e22;">Orpiment</div>
+                    <div class="mineral-body">
+                        <div class="property">
+                            <span class="property-name">Kimyasal Formül:</span> As₂S₃
+                        </div>
+                        <div class="property">
+                            <span class="property-name">Renk:</span> Turuncu-sarı
+                        </div>
+                        <div class="property">
+                            <span class="property-name">Kristal Sistemi:</span> Monoklinik
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mineral-card">
+                    <div class="mineral-header" style="background-color: #f1c40f;">Sülfür</div>
+                    <div class="mineral-body">
+                        <div class="property">
+                            <span class="property-name">Kimyasal Formül:</span> S
+                        </div>
+                        <div class="property">
+                            <span class="property-name">Renk:</span> Açık sarı
+                        </div>
+                        <div class="property">
+                            <span class="property-name">Kristal Sistemi:</span> Ortorombik
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mineral-card">
+                    <div class="mineral-header" style="background-color: #3498db;">Stilbite</div>
+                    <div class="mineral-body">
+                        <div class="property">
+                            <span class="property-name">Grup:</span> Zeolit
+                        </div>
+                        <div class="property">
+                            <span class="property-name">Renk:</span> Beyaz, şeffaf
+                        </div>
+                        <div class="property">
+                            <span class="property-name">Kristal Sistemi:</span> Belirsiz
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mineral-card">
+                    <div class="mineral-header" style="background-color: #9b59b6;">Barit</div>
+                    <div class="mineral-body">
+                        <div class="property">
+                            <span class="property-name">Kimyasal Formül:</span> BaSO₄
+                        </div>
+                        <div class="property">
+                            <span class="property-name">Renk:</span> Renksiz, beyaz
+                        </div>
+                        <div class="property">
+                            <span class="property-name">Kristal Sistemi:</span> Ortorombik
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mineral-card">
+                    <div class="mineral-header" style="background-color: #e74c3c;">Siderit</div>
+                    <div class="mineral-body">
+                        <div class="property">
+                            <span class="property-name">Kimyasal Formül:</span> FeCO₃
+                        </div>
+                        <div class="property">
+                            <span class="property-name">Renk:</span> Kahverengimsi-kırmızımsı
+                        </div>
+                        <div class="property">
+                            <span class="property-name">Kristal Sistemi:</span> Trigonal
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="kristal" class="tab-content">
+            <div class="card">
+                <h2>Kristal Sistemleri ve Mineral Yapıları</h2>
+                <p>Minerallerin kristal yapıları, atomların düzenleniş biçimlerine göre sınıflandırılır. Bu yapısal özellikler, minerallerin fiziksel ve kimyasal davranışlarını belirlemede önemli rol oynar.</p>
+                
+                <div class="mineral-grid">
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #e67e22;">Orpiment</div>
+                        <div class="mineral-body">
+                            <p>Orpiment, monoklinik kristal sistemine ait bir mineraldir. Monoklinik yapı, kristallerin belirgin asimetri özelliklerini ortaya koyar ve ışığın kırılma biçiminde farklılıklar gözlemlenmesine neden olur.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #f1c40f;">Sülfür</div>
+                        <div class="mineral-body">
+                            <p>Sülfür, ortorombik kristal sisteminde oluşan minerallerdendir. Kristal sistemindeki bu düzenlilik, sülfürün kimyasal olarak oldukça kararlı ve kolay tanımlanabilen özelliklerini ortaya koyar.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #3498db;">Stilbite</div>
+                        <div class="mineral-body">
+                            <p>Stilbite, zeolit ailesine ait bir mineraldir. Minerali oluşturan kristal sistemi belirgin olmamakla birlikte, sedimanter kayalıklarda ve alkali zengin ortamlar içinde diğer zeolit mineralleri ile birlikte bulunur.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #9b59b6;">Barit</div>
+                        <div class="mineral-body">
+                            <p>Barit (Baryum sülfat, BaSO₄), genellikle ortorombik kristal sisteminde yer alır. Çok yüksek yoğunluğu ve kimyasal stabilitesi sayesinde özellikle petrol sondajında dolgu malzemesi olarak tercih edilir.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #e74c3c;">Siderit</div>
+                        <div class="mineral-body">
+                            <p>Siderit, temel olarak demir karbonat (FeCO₃) içerir ve kristal yapısı trigonal (rombohedral) şeklindedir. Bu mineral, demir açısından zengin tortul ortamlarda oluşmakta olup, genellikle kahverengimsi-kırmızımsı tonlarda görülür.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="crystalChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div id="fiziksel" class="tab-content">
+            <div class="card">
+                <h2>Fiziksel Özellikler ve Karşılaştırmaları</h2>
+                <p>Minerallerin tanımlanmasında en önemli parametrelerden bazıları, sertlik, çizgi rengi, parlaklık, kırılma şekli, özgül ağırlık ve şeffaflık gibi fiziksel özelliklerdir.</p>
+                
+                <div class="expandable">
+                    <div class="expandable-header">
+                        <span>Sertlik Karşılaştırması (Mohs Ölçeği)</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="expandable-content">
+                        <ul>
+                            <li><strong>Orpiment:</strong> Sertlik 1.5–2 aralığında olup oldukça yumuşaktır.</li>
+                            <li><strong>Sülfür:</strong> Genel olarak sülfür de benzer şekilde düşük sertlik değerlerine sahiptir; çoğunlukla 1.5 civarında değerlendirilebilir.</li>
+                            <li><strong>Stilbite:</strong> Zeolit türü minerallerde görülen sertlik, yaklaşık 3.5–4 arası değişmektedir.</li>
+                            <li><strong>Barit:</strong> Sertlik değeri 3–3.5 civarındadır, bu da onu orta derecede dayanıklı kılar.</li>
+                            <li><strong>Siderit:</strong> Sertlik yaklaşık 3.5–4.5 arası değişmekte, sideritin yapısında bulunan demir karbonatın etkisiyle bu değer dizilişi gözlemlenmektedir.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="expandable">
+                    <div class="expandable-header">
+                        <span>Çizgi Rengi ve Parlaklık</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="expandable-content">
+                        <ul>
+                            <li><strong>Orpiment:</strong> Çizgi rengi tipik olarak canlı sarıdan turuncuya doğru değişir; parlaklığı ise reçinemsi bir görünüme sahiptir.</li>
+                            <li><strong>Sülfür:</strong> Açık sarı renk ve hafif bir parlaklığa sahiptir; genellikle elementel sülfürün karakteristik görünümünü sergiler.</li>
+                            <li><strong>Stilbite:</strong> Stilbite, zeolit mineralleri arasında daha şeffaf, yarı saydam ve bazen kristalin yapısıyla öne çıkar.</li>
+                            <li><strong>Barit:</strong> Barit, genellikle renksizden beyaza yakın renkte olup cam benzeri (vitreous) parlaklığa sahip çıkabilir.</li>
+                            <li><strong>Siderit:</strong> Siderit, çizgi rengi ve yüzey rengi bakımından kırmızımsı kahverengi tonlar gösterirken, doğal parlaklığı mat-saten arası değerlendirilebilir.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="hardnessChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div id="olusum" class="tab-content">
+            <div class="card">
+                <h2>Oluşum Koşulları ve Jeokimyasal Çevreler</h2>
+                <p>Her mineral, oluştuğu jeolojik çevreye bağlı olarak kendine özgü oluşum koşullarını yansıtır. Oluşum ortamının sıcaklık, basınç, pH, oksidasyon-düşünme durumu gibi parametreleri, minerallerin kimyasal bileşimini ve fiziksel özelliklerini etkiler.</p>
+                
+                <div class="mineral-grid">
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #e67e22;">Orpiment</div>
+                        <div class="mineral-body">
+                            <p>Orpiment, düşük sıcaklıklı hidrotermal damarlarda, volkanik fumarollerin çevresinde ve sıcak su kaynaklarının etkili olduğu bölgelerde kristalleşir. Sublimasyon süreçleri Orpiment'in oluşumunda etkili olan başlıca mekanizmalardır.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #f1c40f;">Sülfür</div>
+                        <div class="mineral-body">
+                            <p>Elementel sülfür, volkanik faaliyetlerden kaynaklanan fümöral gazların soğuması ile çökelir. Volkanik bölgelerde sülfürün oluşması, bu elementin oksidasyon-düşünme koşullarındaki dengesinin değişmesinden kaynaklanır.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #3498db;">Stilbite</div>
+                        <div class="mineral-body">
+                            <p>Stilbite, sedimanter çevrelerinde ve alüvyonik kayalıklarda diğer zeolit mineralleri ile birlikte bulunur. Alkali zengin çözeltilerin etkisi altında kristalleşen stilbite, kristal boşluklarında bulunan su molekülleriyle karakterize edilir.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #9b59b6;">Barit</div>
+                        <div class="mineral-body">
+                            <p>Barit, hidrotermal damar sistemlerinde, genellikle baryum açısından zengin sıvıların çökelmesi sonucu oluşur. Yüksek yoğunluklu yapısı nedeniyle, jeokimyasal süreçlerde diğer silikat ve karbonat minerallerinden ayrışır.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #e74c3c;">Siderit</div>
+                        <div class="mineral-body">
+                            <p>Siderit, demir açısından zengin tortul çevrelerde, organik maddelerin ayrışması ve oksidasyon süreçleri sonucunda ortaya çıkar. Bu mineralde, ortamın pH değeri ve karbonat iyonlarının bolluğu, kristalleşme sürecinde belirleyici rol oynar.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="formationChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div id="kullanim" class="tab-content">
+            <div class="card">
+                <h2>Kullanım Alanları ve İsim Kökenleri</h2>
+                <p>Minerallerin yalnızca jeolojik özellikleri değil, aynı zamanda tarihsel, kültürel ve endüstriyel açıdan da önemi vardır.</p>
+                
+                <div class="mineral-grid">
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #e67e22;">Orpiment</div>
+                        <div class="mineral-body">
+                            <p><strong>Kullanım Alanları:</strong> Tarihsel olarak orpiment, altın pigmenti anlamına gelen Latin kökenli "auripigmentum" ismiyle bağlantılı olarak resim sanatı ve tıpta kullanılmıştır.</p>
+                            <p><strong>İsim Kökeni:</strong> Orpiment ismi, Latince "auripigmentum" teriminden türetilmiş olup, adından da anlaşılacağı gibi altın rengine gönderme yapar.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #f1c40f;">Sülfür</div>
+                        <div class="mineral-body">
+                            <p><strong>Kullanım Alanları:</strong> Sülfür, kimya sanayisinde, tarımsal gübre üretiminde ve ilaç sektöründe yaygın olarak kullanılmaktadır.</p>
+                            <p><strong>İsim Kökeni:</strong> "Sülfür" kelimesi, Latince "sulfur" teriminden türemiş olup, elementin doğadaki temel özelliklerini yansıtmaktadır.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #3498db;">Stilbite</div>
+                        <div class="mineral-body">
+                            <p><strong>Kullanım Alanları:</strong> Stilbite; deterjan katkısı, su ve gaz filtreleme sistemleri ile tarımsal toprak düzenleyicilerde kullanılmaktadır.</p>
+                            <p><strong>İsim Kökeni:</strong> Stilbite'nin ismi, Yunanca "parlaklık" gibi kavramlarla ilişkilendirilirken, kristal yüzeyinin belirgin ışıltısından kaynaklandığı düşünülmektedir.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #9b59b6;">Barit</div>
+                        <div class="mineral-body">
+                            <p><strong>Kullanım Alanları:</strong> Barit, özellikle petrol sondajında kullanılan ağırlık ajansı olarak öne çıkar. Ayrıca radyografi ve tıbbi görüntüleme gibi alanlarda kontrast maddesi olarak da kullanılır.</p>
+                            <p><strong>İsim Kökeni:</strong> "Barit" kelimesi Yunanca "ağır" anlamına gelen "barus" kelimesinden türetilmiş olup, bu minerali yoğunluğu ile karakterize eder.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mineral-card">
+                        <div class="mineral-header" style="background-color: #e74c3c;">Siderit</div>
+                        <div class="mineral-body">
+                            <p><strong>Kullanım Alanları:</strong> Siderit, demir içeriği nedeniyle eski zamanlardan beri demir cevheri olarak işlev görmüştür.</p>
+                            <p><strong>İsim Kökeni:</strong> "Siderit" ismi Yunanca "demir" anlamına gelen "sideros" kökünden türeyip, mineralin demir karbonat yapısını yansıtmaktadır.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="usageChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div id="karsilastirma" class="tab-content">
+            <div class="card">
+                <h2>Sistematik Karşılaştırma Tablosu ve Grafiksel Analizler</h2>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Mineral Adı</th>
+                            <th>Kristal Sistemi</th>
+                            <th>Sertlik (Mohs)</th>
+                            <th>Çizgi Rengi</th>
+                            <th>Parlaklık</th>
+                            <th>Oluşum Ortamı</th>
+                            <th>Kullanım Alanları</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Orpiment</td>
+                            <td>Monoklinik</td>
+                            <td>1.5 – 2</td>
+                            <td>Sarı - Turuncu</td>
+                            <td>Reçinemsi</td>
+                            <td>Düşük sıcaklık hidrotermal damarlar, fumaroller</td>
+                            <td>Tarihsel pigment, koleksiyon, laboratuvar referansı</td>
+                        </tr>
+                        <tr>
+                            <td>Sülfür</td>
+                            <td>Ortorombik</td>
+                            <td>~1.5</td>
+                            <td>Açık Sarı</td>
+                            <td>Hafif parlak</td>
+                            <td>Volkanik aktiviteler, fumarol bölgeleri</td>
+                            <td>Kimya sanayisi, tarım, ilaç</td>
+                        </tr>
+                        <tr>
+                            <td>Stilbite</td>
+                            <td>Zeolitik (belirsiz)</td>
+                            <td>3.5 – 4</td>
+                            <td>Genellikle renksiz / hafif tonlu</td>
+                            <td>Vitreous/Şeffaf</td>
+                            <td>Sedimanter kayalar, alkali zengin çevreler</td>
+                            <td>Deterjan, su ve gaz filtreleme, toprak düzenleyici</td>
+                        </tr>
+                        <tr>
+                            <td>Barit</td>
+                            <td>Ortorombik</td>
+                            <td>3 – 3.5</td>
+                            <td>Beyazdan renksiz</td>
+                            <td>Vitreous</td>
+                            <td>Hidrotermal damar sistemleri, denizaltı çevreleri</td>
+                            <td>Petrol sondajı, radyografi, tıbbi görüntüleme</td>
+                        </tr>
+                        <tr>
+                            <td>Siderit</td>
+                            <td>Trigonal (Rombohedral)</td>
+                            <td>3.5 – 4.5</td>
+                            <td>Kahverengimsi – Kırmızımsı</td>
+                            <td>Mat – Saten</td>
+                            <td>Demir zengini tortul ortamlarda, organik ayrışma süreçleri</td>
+                            <td>Demir cevheri, metal alaşımları</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div id="sonuc" class="tab-content">
+            <div class="card">
+                <h2>Sonuç</h2>
+                <p>Bu raporda, Orpiment, Sülfür, Stilbite, Barit ve Siderit minerallerinin sistematik özellikleri detaylı bir biçimde incelenmiştir. Her bir mineralin kristal yapısı, fiziksel özellikleri, oluşum koşulları, kullanım alanları ve isim kökenleri karşılaştırmalı olarak ele alınmıştır.</p>
+                
+                <div class="expandable">
+                    <div class="expandable-header">
+                        <span>Ana Bulgular</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="expandable-content">
+                        <h3>Kristal Sistem ve Yapı:</h3>
+                        <p>Orpiment monoklinik, Sülfür ortorombik, Stilbite zeolitik özellikte, Barit ortorombik ve Siderit trigonal (rombohedral) kristal sistemlerinde yer almaktadır.</p>
+                        
+                        <h3>Fiziksel Özellikler:</h3>
+                        <p>Sertlik değerleri, çizgi rengi, parlaklık ve kırılma şekilleri bakımından incelenen mineraller arasında belirgin farklılıklar mevcuttur.</p>
+                        
+                        <h3>Oluşum Koşulları:</h3>
+                        <p>Minerallerin oluşum ortamları, jeokimyasal çevreler ve süreci belirleyen faktörler açısından farklılık göstermektedir.</p>
+                        
+                        <h3>Kullanım Alanları ve İsim Kökenleri:</h3>
+                        <p>Tarihsel ve güncel kullanım alanları, mineralin kimyasal özellikleriyle doğrudan ilişkilidir.</p>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="summaryChart"></canvas>
+                </div>
+                
+                <h3>Son Değerlendirme</h3>
+                <p>Bu kapsamlı rapor, söz konusu minerallerin sistematik özelliklerini ortaya koyarak, jeolojik ve endüstriyel uygulamalarda önemli referanslar sağlamaktadır. Tartışılan veriler, minerallerin tanımlanmasında kullanılan temel parametrelerin önemini vurgulamakta ve her bir mineralin oluşum ortamının ne denli belirleyici olduğunu göstermektedir.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab functionality
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding content
+                    tab.classList.add('active');
+                    const tabId = tab.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // Initialize charts when tab becomes active
+                    if (tabId === 'kristal') initCrystalChart();
+                    if (tabId === 'fiziksel') initHardnessChart();
+                    if (tabId === 'olusum') initFormationChart();
+                    if (tabId === 'kullanim') initUsageChart();
+                    if (tabId === 'karsilastirma') initComparisonChart();
+                    if (tabId === 'sonuc') initSummaryChart();
+                });
+            });
+            
+            // Expandable sections
+            const expandableHeaders = document.querySelectorAll('.expandable-header');
+            expandableHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const content = header.nextElementSibling;
+                    const arrow = header.querySelector('.arrow');
+                    
+                    if (content.style.display === 'none' || !content.style.display) {
+                        content.style.display = 'block';
+                        arrow.classList.add('rotated');
+                    } else {
+                        content.style.display = 'none';
+                        arrow.classList.remove('rotated');
+                    }
+                });
+            });
+            
+            // Initialize all expandable contents as expanded by default
+            document.querySelectorAll('.expandable-content').forEach(content => {
+                content.style.display = 'block';
+            });
+            
+            // Chart initialization functions
+            function initCrystalChart() {
+                if (window.chartInstances && window.chartInstances.crystalChart) {
+                    window.chartInstances.crystalChart.destroy();
+                }
+                
+                const ctx = document.getElementById('crystalChart').getContext('2d');
+                window.chartInstances = window.chartInstances || {};
+                window.chartInstances.crystalChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Orpiment', 'Sülfür', 'Stilbite', 'Barit', 'Siderit'],
+                        datasets: [{
+                            label: 'Kristal Sistemleri',
+                            data: [2, 3, 1, 3, 4],
+                            backgroundColor: [
+                                'rgba(230, 126, 34, 0.7)',
+                                'rgba(241, 196, 15, 0.7)',
+                                'rgba(52, 152, 219, 0.7)',
+                                'rgba(155, 89, 182, 0.7)',
+                                'rgba(231, 76, 60, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(230, 126, 34, 1)',
+                                'rgba(241, 196, 15, 1)',
+                                'rgba(52, 152, 219, 1)',
+                                'rgba(155, 89, 182, 1)',
+                                'rgba(231, 76, 60, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        const systems = ['', 'Zeolitik', 'Monoklinik', 'Ortorombik', 'Trigonal'];
+                                        return systems[value] || '';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Mineral Kristal Sistemleri',
+                                font: {
+                                    size: 16
+                                }
+                            },
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function initHardnessChart() {
+                if (window.chartInstances && window.chartInstances.hardnessChart) {
+                    window.chartInstances.hardnessChart.destroy();
+                }
+                
+                const ctx = document.getElementById('hardnessChart').getContext('2d');
+                window.chartInstances = window.chartInstances || {};
+                window.chartInstances.hardnessChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Orpiment', 'Sülfür', 'Stilbite', 'Barit', 'Siderit'],
+                        datasets: [{
+                            label: 'Sertlik (Mohs)',
+                            data: [1.75, 1.5, 3.75, 3.25, 4],
+                            backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: [
+                                'rgba(230, 126, 34, 1)',
+                                'rgba(241, 196, 15, 1)',
+                                'rgba(52, 152, 219, 1)',
+                                'rgba(155, 89, 182, 1)',
+                                'rgba(231, 76, 60, 1)'
+                            ],
+                            pointRadius: 6,
+                            pointHoverRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 5,
+                                title: {
+                                    display: true,
+                                    text: 'Mohs Sertlik Değeri'
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Mineral Sertlik Karşılaştırması',
+                                font: {
+                                    size: 16
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function initFormationChart() {
+                if (window.chartInstances && window.chartInstances.formationChart) {
+                    window.chartInstances.formationChart.destroy();
+                }
+                
+                const ctx = document.getElementById('formationChart').getContext('2d');
+                window.chartInstances = window.chartInstances || {};
+                window.chartInstances.formationChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Hidrotermal', 'Volkanik', 'Sedimanter', 'Denizaltı', 'Tortul'],
+                        datasets: [
+                            {
+                                label: 'Orpiment',
+                                data: [90, 70, 10, 5, 20],
+                                backgroundColor: 'rgba(230, 126, 34, 0.2)',
+                                borderColor: 'rgba(230, 126, 34, 1)',
+                                pointBackgroundColor: 'rgba(230, 126, 34, 1)',
+                                pointRadius: 4
+                            },
+                            {
+                                label: 'Sülfür',
+                                data: [30, 95, 20, 10, 15],
+                                backgroundColor: 'rgba(241, 196, 15, 0.2)',
+                                borderColor: 'rgba(241, 196, 15, 1)',
+                                pointBackgroundColor: 'rgba(241, 196, 15, 1)',
+                                pointRadius: 4
+                            },
+                            {
+                                label: 'Stilbite',
+                                data: [20, 10, 95, 30, 40],
+                                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                                borderColor: 'rgba(52, 152, 219, 1)',
+                                pointBackgroundColor: 'rgba(52, 152, 219, 1)',
+                                pointRadius: 4
+                            },
+                            {
+                                label: 'Barit',
+                                data: [85, 30, 40, 80, 50],
+                                backgroundColor: 'rgba(155, 89, 182, 0.2)',
+                                borderColor: 'rgba(155, 89, 182, 1)',
+                                pointBackgroundColor: 'rgba(155, 89, 182, 1)',
+                                pointRadius: 4
+                            },
+                            {
+                                label: 'Siderit',
+                                data: [40, 10, 70, 20, 95],
+                                backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                                borderColor: 'rgba(231, 76, 60, 1)',
+                                pointBackgroundColor: 'rgba(231, 76, 60, 1)',
+                                pointRadius: 4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    display: true
+                                },
+                                suggestedMin: 0,
+                                suggestedMax: 100
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Mineral Oluşum Ortamları Karşılaştırması',
+                                font: {
+                                    size: 16
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function initUsageChart() {
+                if (window.chartInstances && window.chartInstances.usageChart) {
+                    window.chartInstances.usageChart.destroy();
+                }
+                
+                const ctx = document.getElementById('usageChart').getContext('2d');
+                window.chartInstances = window.chartInstances || {};
+                window.chartInstances.usageChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Sanat/Tıp', 'Kimya/Tarım', 'Filtreleme', 'Petrol/Tıp', 'Demir Üretimi'],
+                        datasets: [{
+                            data: [15, 25, 20, 25, 15],
+                            backgroundColor: [
+                                'rgba(230, 126, 34, 0.7)',
+                                'rgba(241, 196, 15, 0.7)',
+                                'rgba(52, 152, 219, 0.7)',
+                                'rgba(155, 89, 182, 0.7)',
+                                'rgba(231, 76, 60, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(230, 126, 34, 1)',
+                                'rgba(241, 196, 15, 1)',
+                                'rgba(52, 152, 219, 1)',
+                                'rgba(155, 89, 182, 1)',
+                                'rgba(231, 76, 60, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Mineral Kullanım Alanları Dağılımı',
+                                font: {
+                                    size: 16
+                                }
+                            },
+                            legend: {
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function initComparisonChart() {
+                if (window.chartInstances && window.chartInstances.comparisonChart) {
+                    window.chartInstances.comparisonChart.destroy();
+                }
+                
+                const ctx = document.getElementById('comparisonChart').getContext('2d');
+                window.chartInstances = window.chartInstances || {};
+                window.chartInstances.comparisonChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Orpiment', 'Sülfür', 'Stilbite', 'Barit', 'Siderit'],
+                        datasets: [
+                            {
+                                label: 'Sertlik (Mohs)',
+                                data: [1.75, 1.5, 3.75, 3.25, 4],
+                                backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                                borderColor: 'rgba(52, 152, 219, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Özgül Ağırlık',
+                                data: [3.5, 2.1, 2.2, 4.5, 3.9],
+                                backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                                borderColor: 'rgba(231, 76, 60, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Mineral Özellikleri Karşılaştırması',
+                                font: {
+                                    size: 16
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function initSummaryChart() {
+                if (window.chartInstances && window.chartInstances.summaryChart) {
+                    window.chartInstances.summaryChart.destroy();
+                }
+                
+                const ctx = document.getElementById('summaryChart').getContext('2d');
+                window.chartInstances = window.chartInstances || {};
+                window.chartInstances.summaryChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Orpiment', 'Sülfür', 'Stilbite', 'Barit', 'Siderit'],
+                        datasets: [{
+                            data: [1, 1, 1, 1, 1],
+                            backgroundColor: [
+                                'rgba(230, 126, 34, 0.7)',
+                                'rgba(241, 196, 15, 0.7)',
+                                'rgba(52, 152, 219, 0.7)',
+                                'rgba(155, 89, 182, 0.7)',
+                                'rgba(231, 76, 60, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(230, 126, 34, 1)',
+                                'rgba(241, 196, 15, 1)',
+                                'rgba(52, 152, 219, 1)',
+                                'rgba(155, 89, 182, 1)',
+                                'rgba(231, 76, 60, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'İncelenen Mineraller',
+                                font: {
+                                    size: 16
+                                }
+                            },
+                            legend: {
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Initialize first tab's chart
+            initCrystalChart();
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.chartInstances) {
+                    Object.values(window.chartInstances).forEach(chart => {
+                        chart.resize();
+                    });
+                }
+            });
+        });
+    </script>
+<script>window.parent.postMessage({ action: "ready" }, "*"); 
+ 
+window.console = new Proxy(console, {
+  get(target, prop) {
+    if (['log', 'warn', 'error'].includes(prop)) {
+      return new Proxy(target[prop], {
+        apply(fn, thisArg, args) {
+          fn.apply(thisArg, args);
+          window.parent.postMessage({ action: 'console', 
+            type: prop, 
+            args: args.map((arg) => {
+              try {
+                return JSON.stringify(arg).replace(/^["']|["']$/g, '');
+              } catch (e) {
+                return arg;
+              }
+            }) 
+          }, '*');
+        }
+      });
+    }
+    return target[prop];
+  }
+});
+</script></body>
+</html>
