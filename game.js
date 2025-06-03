@@ -1,5 +1,5 @@
-const cardImages = ['H', 'A', 'M', 'S', 'O', 'G', 'L', 'U'];
-const targetWord = 'HAMSOGLU';
+const cardImages = ['N', 'I', 'S', 'A'];
+const targetWord = 'NISA';
 let hideLettersFlag = false; // Flag to determine whether to hide letters
 
 function shuffleArray(array) {
