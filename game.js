@@ -65,9 +65,9 @@ function renderCards() {
         
         if (hideLettersFlag) {
             // Eğer harfler gizleniyorsa, bir kapalı kapı resmi veya başka bir şey ekleyebilirsiniz.
-            svgElement.src = 'gri.svg';
+            svgElement.src = 'grin.svg';
         } else {
-            svgElement.src = `${letter}.svg`;
+            svgElement.src = `${letter}n.svg`;
         }
         
         svgElement.alt = letter;
