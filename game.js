@@ -57,7 +57,7 @@ function renderCards() {
     memoryGameElement.innerHTML = '';
 
     cardImages.forEach((letter, index) => {
-        const cardElement = document.createElement('div');
+        const cardElement = document.createElement('div') ;
         cardElement.classList.add('card');
 
         // SVG dosyasını ekleyin
